@@ -3,6 +3,8 @@ Empty repository to start the workshop
 
 ## GitPod integration
 
+Before open the project in Gitpod make sure to have set your `K8S_CTK` variable with the base 64 encoded version of your Kubernetes config file (`config-k3s00X`) file: `cat config-k3s00X | base64`.
+
 To open the workspace, simply click on the *Open in Gitpod* button, or use [this link](https://gitpod.io/#https://github.com/k8s-operator-workshop/workshop-operator-hello-world).
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/k8s-operator-workshop/workshop-operator-hello-world)
@@ -10,11 +12,6 @@ To open the workspace, simply click on the *Open in Gitpod* button, or use [this
 ## Workshop steps
 
 ℹ️ The complete source of the workshop can be found in the [workshop-operator-hello-world-solution](https://github.com/k8s-operator-workshop/workshop-operator-hello-world-solution) repository ℹ️
-
-### Init your workspace
-
-  - add a `K8S_CTX` variable with the Kubernetes configuration in Gitpod
-  - create your namespace in the Kubernetes' cluster **TODO modop**
 
 ### Init the project
 
@@ -41,6 +38,20 @@ To open the workspace, simply click on the *Open in Gitpod* button, or use [this
   remove the following dependency in the `pom.xml`:
 ```xml
 quarkus-operator-sdk-csv-generator
+```
+  - add these dependencies in `pom.xml` for k3s compatibility:
+```xml
+    <!-- Mandatory for k3s : see https://github.com/fabric8io/kubernetes-client/issues/1796 -->
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-ext-jdk15on</artifactId>
+      <version>1.69</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-jdk15on</artifactId>
+      <version>1.69</version>
+    </dependency>
 ```
   - test the compilation: `mvn clean compile`
   - launch Quarkus in _dev mode_: `mvn quarkus:dev`:
@@ -179,7 +190,7 @@ public class HelloWorldReconciler implements Reconciler<HelloWorld>, Cleaner<Hel
   }
 }
 ```
-  <!--- create the namespace `<username>-hello-world`: `kubectl create ns <username>-hello-world`, for example `kubectl create ns wilda-hello-world`-->
+  - create the namespace `test-hello-world`: `kubectl create ns test-hello-world`
   - create CR `./src/test/resources/cr-test-hello-world.yaml`:
 ```yaml
 apiVersion: "operator.workshop.com/v1"
@@ -189,12 +200,12 @@ metadata:
 spec:
   name: Moon
 ```
-  - apply it on your namespace: `kubectl apply -f ./src/test/resources/cr-test-hello-world.yaml -n <your namespace>`, for example `kubectl apply -f ./src/test/resources/cr-test-hello-world.yaml -n wilda-workshop`
+  - apply it on your namespace: `kubectl apply -f ./src/test/resources/cr-test-hello-world.yaml -n test-hello-world`
   - the logs in the console must display:
 ```bash
 INFO  [com.wor.ope.HelloWorldReconciler] (EventHandler-helloworldreconciler) 👋 Hello, World ! From Moon 🌏
 ```
-  - delete the CR: `kubectl delete helloworlds.operator.workshop.com hello-world -n <your namespace>`, for example `kubectl delete helloworlds.operator.workshop.com hello-world -n wilda-workshop`
+  - delete the CR: `kubectl delete helloworlds.operator.workshop.com hello-world -n test-hello-world`
   - the logs in the console must display:
 ```bash
 INFO  [com.wor.ope.HelloWorldReconciler] (EventHandler-helloworldreconciler) 🥲 Goodbye, World ! From Moon
